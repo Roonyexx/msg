@@ -3,7 +3,6 @@
 
 Session::Session(tcp::socket socket)
     : socket{ std::make_shared<tcp::socket>(std::move(socket)) }, 
-      msgHandler{ std::make_shared<MessageProcessor>() },
       running{ true }
 { }
 
@@ -36,10 +35,12 @@ void Session::handleClient()
             std::size_t bytesRead = boost::asio::read(*socket, boost::asio::buffer(&messageSize, sizeof(messageSize)), errorCode);
 
             if (errorCode == boost::asio::error::eof || bytesRead == 0)
+                this->stop();
                 break;
             if (errorCode)
             {
                 std::cerr << "Error reading from socket: " << errorCode.message() << std::endl;
+                this->stop();
                 break;
             }
 
@@ -50,10 +51,11 @@ void Session::handleClient()
             if (errorCode || bytesRead != messageSize)
             {
                 std::cerr << "Error reading from socket: " << errorCode.message() << std::endl;
+                this->stop();
                 break;
             }
 
-            std::string msg(buffer.begin(), buffer.end());
+            std::string msg{ buffer.begin(), buffer.end() };
             
             // запись сообщения в очередь
             try
@@ -63,8 +65,7 @@ void Session::handleClient()
                     std::lock_guard<std::mutex> lock(queueMutex);
                     messages.push(j);
                 }
-                // уведомление обработчика сообщений
-                // т.е. будим поток, что обработает сообщения в очереди
+                // будим поток, что обработает сообщения в очереди
                 cv.notify_one();
             }
             catch(const std::exception& e)
@@ -96,7 +97,7 @@ void Session::processMessages()
             
             try
             {
-                msgHandler->onMessage(msg);
+                //msgHandler->onMessage(msg);
             }
             catch(const std::exception& e)
             {
