@@ -26,17 +26,16 @@ void Session::stop()
 
 void Session::handleClient()
 {
-    boost::asio::streambuf buffer;
-    std::istream inputStream(&buffer);
-
     try
     {
         for (;;)
         {
+            uint32_t messageSize{ };
             boost::system::error_code errorCode;
-            std::size_t length = boost::asio::read_until(*socket, buffer, '\n', errorCode);
+            // читаем размер сообщения
+            std::size_t bytesRead = boost::asio::read(*socket, boost::asio::buffer(&messageSize, sizeof(messageSize)), errorCode);
 
-            if (errorCode == boost::asio::error::eof || length == 0)
+            if (errorCode == boost::asio::error::eof || bytesRead == 0)
                 break;
             if (errorCode)
             {
@@ -44,8 +43,17 @@ void Session::handleClient()
                 break;
             }
 
-            std::string msg;
-            std::getline(inputStream, msg);
+            // читаем само сообщение
+            std::vector<char> buffer(messageSize);
+            bytesRead = boost::asio::read(*socket, boost::asio::buffer(buffer.data(), messageSize), errorCode);
+
+            if (errorCode || bytesRead != messageSize)
+            {
+                std::cerr << "Error reading from socket: " << errorCode.message() << std::endl;
+                break;
+            }
+
+            std::string msg(buffer.begin(), buffer.end());
             
             // запись сообщения в очередь
             try
