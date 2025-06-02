@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BOOST_ROOT "C:/local/boost_1_88_0")
 set(Boost_USE_STATIC_LIBS ON)
 
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
 find_package(BOOST REQUIRED COMPONENTS system)
 
 add_subdirectory(server)
