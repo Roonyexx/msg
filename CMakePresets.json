@@ -1,0 +1,50 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": 
+    {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets":
+    [
+        {
+            "name": "default",
+            "hidden": false,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
+            }
+        },
+        {
+            "name": "Visual Studio Build Tools 2022 Release - amd64",
+            "displayName": "Visual Studio Build Tools 2022 Release - amd64",
+            "description": "Использование компиляторов для Visual Studio 17 2022 (архитектура x64).",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": 
+            {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
+        }
+    ],
+    "buildPresets": 
+    [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "Visual Studio Build Tools 2022 Release - amd64-debug",
+            "displayName": "Visual Studio Build Tools 2022 Release - amd64 - Debug",
+            "configurePreset": "Visual Studio Build Tools 2022 Release - amd64",
+            "configuration": "Debug"
+        }
+    ]
+}
