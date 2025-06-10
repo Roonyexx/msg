@@ -63,8 +63,8 @@ public:
         try 
         {
             pqxx::result res = 
-                txn.exec_params("insert into app_user (username, password_hash, status_id) values ($1, $2, $3) returning id",
-                username, passwordHash, static_cast<uint64_t>(userStatus::online));
+                txn.exec(pqxx::zview("insert into app_user (username, password_hash, status_id) values ($1, $2, $3) returning id"),
+                pqxx::params(username, passwordHash, static_cast<uint64_t>(userStatus::online)));
             txn.commit();
             return !res.empty() ? res[0]["id"].as<std::string>() : "";
         } 
@@ -79,9 +79,9 @@ public:
     std::string authenticateUser(const std::string& username, const std::string& passwordHash) 
     {
         pqxx::nontransaction txn(*conn);
-        pqxx::result res = txn.exec_params(
-            "select id from app_user where username = $1 and password_hash = $2",
-            username, passwordHash
+        pqxx::result res = txn.exec(
+            pqxx::zview("select id from app_user where username = $1 and password_hash = $2"),
+            pqxx::params(username, passwordHash)
         );
         return !res.empty() ? res[0]["id"].as<std::string>() : "";
     }
@@ -91,7 +91,7 @@ public:
         pqxx::work txn(*conn);
         try 
         {
-            txn.exec_params("update app_user set status_id = $1 where id = $2", static_cast<uint64_t>(status), userId);
+            txn.exec(pqxx::zview("update app_user set status_id = $1 where id = $2"), pqxx::params(static_cast<uint64_t>(status), userId));
             txn.commit();
             return true;
         } 
@@ -107,9 +107,9 @@ public:
         pqxx::work txn(*conn);
         try
         {
-            txn.exec_params(
-                "insert into message (sender_id, chat_id, content) values ($1, $2, $3)",
-                userId, chatId, content);
+            txn.exec(
+                pqxx::zview("insert into message (sender_id, chat_id, content) values ($1, $2, $3)"),
+                pqxx::params(userId, chatId, content));
             txn.commit();
             return true;
         }
@@ -125,7 +125,7 @@ public:
         pqxx::work txn(*conn);
         try
         {
-            txn.exec_params("delete from message where id = $1", messageId);
+            txn.exec(pqxx::zview("delete from message where id = $1"), pqxx::params(messageId));
             txn.commit();
             return true;
         }
@@ -141,7 +141,8 @@ public:
         pqxx::work txn(*conn);
         try
         {
-            txn.exec_params("insert into deleted_message (user_id, message_id, chat_id) values ($1, $2, $3)", userId, messageId, chatId);
+            txn.exec(pqxx::zview("insert into deleted_message (user_id, message_id, chat_id) values ($1, $2, $3)"), 
+                            pqxx::params(userId, messageId, chatId));
             txn.commit();
             return true;
         }
@@ -158,7 +159,8 @@ public:
         try
         {
             userChatRole role = (type == chatType::chatGroup) ? userChatRole::owner : userChatRole::member;
-            pqxx::row row = txn.exec_params("insert into chat (title, chat_type_id) values ($1, $2) returning id", chatTitle, static_cast<uint64_t>(type))[0];
+            pqxx::row row = txn.exec(pqxx::zview("insert into chat (title, chat_type_id) values ($1, $2) returning id"), 
+                                     pqxx::params(chatTitle, static_cast<uint64_t>(type)))[0];
 
             std::string chatId = row["id"].as<std::string>();
 
@@ -187,11 +189,12 @@ public:
     std::vector<json> getUserChats(const std::string& userId)
     {
         pqxx::nontransaction txn(*conn);
-        pqxx::result res = txn.exec_params(
-            "select cp.chat_id, c.title, c.chat_type_id "
+        pqxx::result res = txn.exec(
+            pqxx::zview("select cp.chat_id, c.title, c.chat_type_id "
             "from chat_participant cp "
             "join chat c on cp.chat_id = c.id "
-            "where cp.user_id = $1", userId
+            "where cp.user_id = $1"), 
+            pqxx::params(userId)
         );
 
         std::vector<json> chats;
@@ -209,11 +212,12 @@ public:
     std::vector<json> getChatMessages(const std::string& chatId)
     {
         pqxx::nontransaction txn(*conn);
-        pqxx::result res = txn.exec_params(
-            "select m.id, m.sender_id, m.content, m.sent_at "
+        pqxx::result res = txn.exec(
+            pqxx::zview("select m.id, m.sender_id, m.content, m.sent_at "
             "from message m "
             "where m.chat_id = $1 "
-            "order by m.sent_at asc", chatId
+            "order by m.sent_at asc"), 
+            pqxx::params(chatId)
         );
 
         std::vector<json> messages;
@@ -234,7 +238,7 @@ public:
         pqxx::work txn(*conn);
         try
         {
-            txn.exec_params("delete from chat_participant where chat_id = $1 and user_id = $2", chatId, userId);
+            txn.exec(pqxx::zview("delete from chat_participant where chat_id = $1 and user_id = $2"), pqxx::params(chatId, userId));
             txn.commit();
             return true;
         }
@@ -253,9 +257,9 @@ private:
     {
         try
         {
-            txn.exec_params(
-                "insert into chat_participant (user_id, chat_id, chat_role_id) values ($1, $2, $3)",
-                userId, chatId, static_cast<uint64_t>(role));
+            txn.exec(
+                pqxx::zview("insert into chat_participant (user_id, chat_id, chat_role_id) values ($1, $2, $3)"),
+                pqxx::params(userId, chatId, static_cast<uint64_t>(role)));
 
             return true;
         }
@@ -289,3 +293,4 @@ private:
     static std::shared_ptr<DatabaseManage> instance;
 };
 
+std::shared_ptr<DatabaseManage> DatabaseManage::instance = nullptr;
