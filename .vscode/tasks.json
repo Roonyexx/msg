@@ -5,6 +5,8 @@
             "label": "C/C++: g++.exe сборка активного файла",
             "command": "C:/mingw64/bin/g++.exe",
             "args": [
+                "/property:CLToolAdditionalOptions=\"/utf-8\"",
+                "/property:LinkToolAdditionalOptions=\"/utf-8\"",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",

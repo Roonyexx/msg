@@ -1,0 +1,291 @@
+#pragma once
+#include <string>
+#include <memory>
+#include <pqxx/pqxx>
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <vector>
+
+using json = nlohmann::json;
+
+enum class chatType : uint64_t
+{
+    chatPrivate = 1,
+    chatGroup = 2
+};
+
+enum class userStatus : uint64_t
+{
+    offline = 1,
+    online = 2
+};
+
+enum class userChatRole : uint64_t
+{
+    member = 1,
+    owner = 2,
+    admin = 3
+};
+
+
+
+class DatabaseManage 
+{
+public:
+
+    static std::shared_ptr<DatabaseManage> getInstance(const std::string& connectionString) 
+    {
+        instance = std::shared_ptr<DatabaseManage>(new DatabaseManage(connectionString));
+        return instance;
+    }
+
+    static std::shared_ptr<DatabaseManage> getInstance() 
+    {
+        if (!instance) 
+        {
+            throw std::runtime_error("DatabaseManage instance not initialized");
+        }
+        return instance;
+    }
+
+
+    bool isUsernameExists(const std::string& username) 
+    {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec(pqxx::zview("select 1 from app_user where username = $1"), pqxx::params(username));
+        return !res.empty();
+    }
+
+
+    std::string createUser(const std::string& username, const std::string& passwordHash)
+    {
+        pqxx::work txn(*conn);
+        try 
+        {
+            pqxx::result res = 
+                txn.exec_params("insert into app_user (username, password_hash, status_id) values ($1, $2, $3) returning id",
+                username, passwordHash, static_cast<uint64_t>(userStatus::online));
+            txn.commit();
+            return !res.empty() ? res[0]["id"].as<std::string>() : "";
+        } 
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return "";
+        } 
+    }
+
+
+    std::string authenticateUser(const std::string& username, const std::string& passwordHash) 
+    {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_params(
+            "select id from app_user where username = $1 and password_hash = $2",
+            username, passwordHash
+        );
+        return !res.empty() ? res[0]["id"].as<std::string>() : "";
+    }
+
+    bool updateUserStatus(const std::string& userId, const userStatus status) 
+    {
+        pqxx::work txn(*conn);
+        try 
+        {
+            txn.exec_params("update app_user set status_id = $1 where id = $2", static_cast<uint64_t>(status), userId);
+            txn.commit();
+            return true;
+        } 
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool saveMessage(const std::string& userId, const std::string& chatId, const std::string& content)
+    {
+        pqxx::work txn(*conn);
+        try
+        {
+            txn.exec_params(
+                "insert into message (sender_id, chat_id, content) values ($1, $2, $3)",
+                userId, chatId, content);
+            txn.commit();
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool deleteMessageGlobal(const uint64_t messageId)
+    {
+        pqxx::work txn(*conn);
+        try
+        {
+            txn.exec_params("delete from message where id = $1", messageId);
+            txn.commit();
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool deleteMessageLocal(const std::string& userId, const uint64_t& messageId, const std::string& chatId)
+    {
+        pqxx::work txn(*conn);
+        try
+        {
+            txn.exec_params("insert into deleted_message (user_id, message_id, chat_id) values ($1, $2, $3)", userId, messageId, chatId);
+            txn.commit();
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool createChat(const std::string& chatTitle, const chatType type, const std::vector<std::string>& userIds)
+    {
+        pqxx::work txn(*conn);
+        try
+        {
+            userChatRole role = (type == chatType::chatGroup) ? userChatRole::owner : userChatRole::member;
+            pqxx::row row = txn.exec_params("insert into chat (title, chat_type_id) values ($1, $2) returning id", chatTitle, static_cast<uint64_t>(type))[0];
+
+            std::string chatId = row["id"].as<std::string>();
+
+            for (const auto& userId : userIds) 
+            {
+                addChatParticipant(chatId, userId, role, txn);
+                role = userChatRole::member;
+            }
+
+            txn.commit();
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    bool addUserToChat(const std::string& chatId, const std::string& userId, const userChatRole role = userChatRole::member)
+    {
+        pqxx::work txn(*conn);
+        return addChatParticipant(chatId, userId, role, txn);
+    }
+
+    std::vector<json> getUserChats(const std::string& userId)
+    {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_params(
+            "select cp.chat_id, c.title, c.chat_type_id "
+            "from chat_participant cp "
+            "join chat c on cp.chat_id = c.id "
+            "where cp.user_id = $1", userId
+        );
+
+        std::vector<json> chats;
+        for (const auto& row : res)
+        {
+            json chat;
+            chat["chat_id"] = row["chat_id"].as<std::string>();
+            chat["title"] = row["title"].as<std::string>();
+            chat["chat_type"] = chatTypeToString(static_cast<chatType>(row["chat_type_id"].as<uint64_t>()));
+            chats.push_back(chat);
+        }
+        return chats;
+    }
+
+    std::vector<json> getChatMessages(const std::string& chatId)
+    {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_params(
+            "select m.id, m.sender_id, m.content, m.sent_at "
+            "from message m "
+            "where m.chat_id = $1 "
+            "order by m.sent_at asc", chatId
+        );
+
+        std::vector<json> messages;
+        for (const auto& row : res)
+        {
+            json message;
+            message["id"] = row["id"].as<uint64_t>();
+            message["user_id"] = row["sender_id"].as<std::string>();
+            message["content"] = row["content"].as<std::string>();
+            message["timestamp"] = row["sent_at"].as<std::string>();
+            messages.push_back(message);
+        }
+        return messages;
+    }
+
+    bool leaveChat(const std::string& chatId, const std::string& userId)
+    {
+        pqxx::work txn(*conn);
+        try
+        {
+            txn.exec_params("delete from chat_participant where chat_id = $1 and user_id = $2", chatId, userId);
+            txn.commit();
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+ 
+private:
+    bool addChatParticipant(const std::string& chatId, 
+                            const std::string& userId, 
+                            const userChatRole role, 
+                            pqxx::work& txn) 
+    {
+        try
+        {
+            txn.exec_params(
+                "insert into chat_participant (user_id, chat_id, chat_role_id) values ($1, $2, $3)",
+                userId, chatId, static_cast<uint64_t>(role));
+
+            return true;
+        }
+        catch (const pqxx::sql_error& e) 
+        {
+            std::cerr << "SQL error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    std::string chatTypeToString(chatType type) 
+    {
+        switch (type) 
+        {
+            case chatType::chatPrivate: return "private";
+            case chatType::chatGroup: return "group";
+            default: return "unknown";
+        }
+    }
+    
+    DatabaseManage(const std::string& connectionString)
+        : conn(std::make_unique<pqxx::connection>(connectionString)) 
+    {
+        if (!conn->is_open()) 
+        {
+            throw std::runtime_error("Failed to open database connection");
+        }
+    }
+
+    std::unique_ptr<pqxx::connection> conn;
+    static std::shared_ptr<DatabaseManage> instance;
+};
+
