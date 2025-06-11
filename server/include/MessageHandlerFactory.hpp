@@ -31,6 +31,8 @@ public:
 
 private:
     MessageHandlerFactory() { registerHandlers(); }
+    // вроде бы мне нравится это решение с точки зрения архитектуры, но вот эта штука выполняется в рантайме
+    // хоть и единожды.
     void registerHandlers()
     { 
         registerHandler("register", std::make_shared<RegistrationEventHandler>());
