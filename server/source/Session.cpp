@@ -33,10 +33,12 @@ void Session::handleClient()
             boost::system::error_code errorCode;
             // читаем размер сообщения
             std::size_t bytesRead = boost::asio::read(*socket, boost::asio::buffer(&messageSize, sizeof(messageSize)), errorCode);
-
+            
             if (errorCode == boost::asio::error::eof || bytesRead == 0)
+            {
                 this->stop();
                 break;
+            }
             if (errorCode)
             {
                 std::cerr << "Error reading from socket: " << errorCode.message() << std::endl;
@@ -56,7 +58,6 @@ void Session::handleClient()
             }
 
             std::string msg{ buffer.begin(), buffer.end() };
-            
             // запись сообщения в очередь
             try
             {
@@ -97,7 +98,15 @@ void Session::processMessages()
             
             try
             {
-                //msgHandler->onMessage(msg);
+                std::string action = msg.value("action", "");
+                auto msgHandler = MessageHandlerFactory::getInstance();
+                auto handler = msgHandler.getHandler(action);
+                if (handler) std::cout << handler->handle(msg).dump() << std::endl;
+                else
+                {
+                    std::cerr << "No handler found for action: " << action << std::endl;
+                    continue; 
+                }
             }
             catch(const std::exception& e)
             {

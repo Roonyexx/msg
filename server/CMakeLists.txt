@@ -1,15 +1,26 @@
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR}/include)
-#link_directories(${PROJECT_SOURCE_DIR}/lib)
-
-file(GLOB SOURCES
-    ./source/*.cpp
-    ./include/*.hpp
+file(GLOB_RECURSE SOURCES
+    "./source/*.cpp"
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+file(GLOB_RECURSE HEADERS
+    "./include/*.hpp"
+    "${PROJECT_SOURCE_DIR}/include/*.hpp" 
+)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ./include)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PRIVATE libpqxx::pqxx)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    ./include
+    ${PROJECT_SOURCE_DIR}/include
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    Boost::system
+    libpqxx::pqxx
+)

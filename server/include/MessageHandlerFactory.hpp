@@ -23,6 +23,7 @@ public:
         auto it = handlers.find(type);
         if (it != handlers.end())
         {
+
             return it->second;
         }
         return nullptr;
@@ -32,8 +33,16 @@ private:
     MessageHandlerFactory() { registerHandlers(); }
     void registerHandlers()
     { 
-        registerHandler("registration", std::make_shared<RegistrationEventHandler>());
+        registerHandler("register", std::make_shared<RegistrationEventHandler>());
         registerHandler("login", std::make_shared<LoginEventHandler>());
+        registerHandler("send_message", std::make_shared<SendMessageEventHandler>());
+        registerHandler("get_messages", std::make_shared<GetMessagesEventHandler>());
+        registerHandler("delete_message_global", std::make_shared<DeleteMessageGlobalEventHandler>());
+        registerHandler("delete_message_local", std::make_shared<DeleteMessageLocalEventHandler>());
+        registerHandler("create_chat", std::make_shared<CreateChatEventHandler>());
+        registerHandler("leave_chat", std::make_shared<LeaveChatEventHandler>());
+        registerHandler("chat_invite", std::make_shared<ChatInviteEventHandler>());
+        registerHandler("get_user_chats", std::make_shared<GetUserChatsEventHandler>());
     }
 
 

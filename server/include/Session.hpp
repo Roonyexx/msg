@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include "MessageHandlerFactory.hpp"
 
 using tcp = boost::asio::ip::tcp;
 using json = nlohmann::json;

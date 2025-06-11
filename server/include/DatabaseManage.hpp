@@ -52,7 +52,7 @@ public:
     bool isUsernameExists(const std::string& username) 
     {
         pqxx::nontransaction txn(*conn);
-        pqxx::result res = txn.exec(pqxx::zview("select 1 from app_user where username = $1"), pqxx::params(username));
+        pqxx::result res = txn.exec_params("select 1 from app_user where username = $1", username);
         return !res.empty();
     }
 
@@ -142,7 +142,7 @@ public:
         try
         {
             txn.exec(pqxx::zview("insert into deleted_message (user_id, message_id, chat_id) values ($1, $2, $3)"), 
-                            pqxx::params(userId, messageId, chatId));
+                     pqxx::params(userId, messageId, chatId));
             txn.commit();
             return true;
         }
@@ -153,7 +153,7 @@ public:
         }
     }
 
-    bool createChat(const std::string& chatTitle, const chatType type, const std::vector<std::string>& userIds)
+    std::string createChat(const std::string& chatTitle, const chatType type, const std::vector<std::string>& userIds)
     {
         pqxx::work txn(*conn);
         try
@@ -171,12 +171,12 @@ public:
             }
 
             txn.commit();
-            return true;
+            return chatId;
         }
         catch (const pqxx::sql_error& e) 
         {
             std::cerr << "SQL error: " << e.what() << std::endl;
-            return false;
+            return "";
         }
     }
 
@@ -191,9 +191,9 @@ public:
         pqxx::nontransaction txn(*conn);
         pqxx::result res = txn.exec(
             pqxx::zview("select cp.chat_id, c.title, c.chat_type_id "
-            "from chat_participant cp "
-            "join chat c on cp.chat_id = c.id "
-            "where cp.user_id = $1"), 
+                        "from chat_participant cp "
+                        "join chat c on cp.chat_id = c.id "
+                        "where cp.user_id = $1"), 
             pqxx::params(userId)
         );
 
@@ -214,9 +214,9 @@ public:
         pqxx::nontransaction txn(*conn);
         pqxx::result res = txn.exec(
             pqxx::zview("select m.id, m.sender_id, m.content, m.sent_at "
-            "from message m "
-            "where m.chat_id = $1 "
-            "order by m.sent_at asc"), 
+                        "from message m "
+                        "where m.chat_id = $1 "
+                        "order by m.sent_at asc"), 
             pqxx::params(chatId)
         );
 
@@ -293,4 +293,3 @@ private:
     static std::shared_ptr<DatabaseManage> instance;
 };
 
-std::shared_ptr<DatabaseManage> DatabaseManage::instance = nullptr;

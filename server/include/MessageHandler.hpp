@@ -36,7 +36,6 @@ public:
             std::string username { msg.value("username", "") };
             std::string password { msg.value("password", "") };
             auto db = DatabaseManage::getInstance();
-
             if (username.empty())
             {
                 response["status"] = "error";
@@ -61,6 +60,7 @@ public:
             }
             else
             {
+                std::cout << "User created successfully: " << response["message"] << std::endl;
                 response["status"] = "success";
             }
             
@@ -71,7 +71,6 @@ public:
             response["status"] = "error";
             response["message"] = e.what();
         }
-        
         return response;
     }
 };
@@ -208,7 +207,7 @@ public:
 // {
 //   "action": "delete_message_global",
 //   "message_id": ,
-//   "chat_id": "uuid"
+//   "chat_id": ""
 // }
 // ответ JSON
 // {
@@ -223,7 +222,7 @@ public:
         try
         {
             uint64_t messageId = msg.value("message_id", 0);
-            std::string chatId = msg.value("chat_id", "");
+            std::string chatId { msg.value("chat_id", "") };
 
             auto db = DatabaseManage::getInstance();
             if (db->deleteMessageGlobal(messageId))
@@ -235,6 +234,217 @@ public:
                 response["status"] = "error";
                 response["message"] = "Failed to delete message from the database";
             }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+
+
+// {
+//   "action": "delete_message_local",
+//   "message_id": ,
+//   "user_id": ""
+//   "chat_id": ""
+// }
+// ответ JSON
+// {
+//   "status": "",   
+//   "message": ""
+class DeleteMessageLocalEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override 
+    {
+        json response;
+        try
+        {
+            uint64_t messageId = msg.value("message_id", 0);
+            std::string userId { msg.value("user_id", "") };
+            std::string chatId { msg.value("chat_id", "") };
+
+            auto db = DatabaseManage::getInstance();
+            if (db->deleteMessageLocal(userId, messageId, chatId))
+            {
+                response["status"] = "success";
+            }
+            else
+            {
+                response["status"] = "error";
+                response["message"] = "Failed to delete local message from the database";
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+// {
+//   "action": "create_chat",
+//   "chat_name": ""
+//   "chat_type": ""
+//   "chat_members": [] 
+// }
+// ответ JSON
+// {
+//   "status": "",   
+//   "message": ""
+class CreateChatEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override 
+    {
+        json response;
+        try
+        {
+            std::string chatName { msg.value("chat_name", "") };
+            std::string t { msg.value("chat_type", "private") };
+            // мне стыдно за 3 строки ниже, это повториться
+            chatType type { chatType::chatPrivate };
+            if (t == "group") type = chatType::chatGroup;
+            else if (t != "private") throw std::invalid_argument("Invalid chat type");
+
+            std::vector<std::string> chatMembers = msg.value("chat_members", json::array());
+
+            auto db = DatabaseManage::getInstance();
+            if (!(response["message"] = db->createChat(chatName, type, chatMembers)).empty())
+            {
+                response["status"] = "success";
+            }
+            else
+            {
+                response["status"] = "error";
+                response["message"] = "Failed to create chat in the database";
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+
+// {
+//   "action": "leave_chat",
+//   "user_id": ""
+//   "chat_id": ""
+// }
+// ответ JSON
+// {
+//   "status": "",   
+//   "message": ""
+class LeaveChatEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override 
+    {
+        json response;
+        try
+        {
+            std::string userId { msg.value("user_id", "") };
+            std::string chatId { msg.value("chat_id", "") };
+
+            auto db = DatabaseManage::getInstance();
+            if (db->leaveChat(chatId, userId))
+            {
+                response["status"] = "success";
+            }
+            else
+            {
+                response["status"] = "error";
+                response["message"] = "Failed to leave chat in the database";
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+
+// {
+//   "action": "chat_invite",
+//   "user_id": ""
+//   "chat_id": ""
+// }
+// ответ JSON
+// {
+//   "status": "",   
+//   "message": ""
+class ChatInviteEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override 
+    {
+        json response;
+        try
+        {
+            std::string userId { msg.value("user_id", "") };
+            std::string chatId { msg.value("chat_id", "") };
+
+            auto db = DatabaseManage::getInstance();
+            if (db->addUserToChat(chatId, userId))
+            {
+                response["status"] = "success";
+            }
+            else
+            {
+                response["status"] = "error";
+                response["message"] = "Failed to invite user to chat in the database";
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+
+// {
+//   "action": "get_user_chats",
+//   "user_id": ""
+// }
+// ответ JSON
+// {
+//   "status": "",   
+//   "message": ""
+class GetUserChatsEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override 
+    {
+        json response;
+        try
+        {
+            std::string userId { msg.value("user_id", "") };
+            auto db = DatabaseManage::getInstance();
+            auto chats = db->getUserChats(userId);
+
+            response["status"] = "success";
+            response["chats"] = chats;
         }
         catch(const std::exception& e)
         {

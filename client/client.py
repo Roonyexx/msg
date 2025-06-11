@@ -5,10 +5,7 @@ import time
 
 def send_json_messages(host='127.0.0.1', port=5001):
     messages = [
-        {"type": "auth", "user": "alice", "password": "123"},
-        {"type": "ping"},
-        {"type": "message", "text": "Hello, server!"},
-        {"type": "logout"}
+        {"action": "register", "username": "alice", "password": "123456"},
     ]
 
     try:
