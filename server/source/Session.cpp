@@ -13,6 +13,7 @@ void Session::start()
 
     // поток для обработки сообщений
     std::thread{ &Session::processMessages, shared_from_this() }.detach();
+    // там в 20 стандарте корутины появились, я их так и не потыкал, обидно
 }
 
 void Session::stop()
@@ -98,10 +99,22 @@ void Session::processMessages()
             
             try
             {
+                json response;
                 std::string action = msg.value("action", "");
                 auto msgHandler = MessageHandlerFactory::getInstance();
                 auto handler = msgHandler.getHandler(action);
-                if (handler) std::cout << handler->handle(msg).dump() << std::endl;
+                if (handler) response = handler->handle(msg);
+
+                // отправляем ответ клиенту, вообще, думаю, по-хорошему нужно это вынести в метод сервера, 
+                // сделаю это если еще где-то сообщения понадобится отправлять, что вряд ли, на самом деле
+                if (socket && socket->is_open())
+                {
+                    std::string responseStr = response.dump();
+                    uint32_t responseSize = static_cast<uint32_t>(responseStr.size());
+                    boost::asio::write(*socket, boost::asio::buffer(&responseSize, sizeof(responseSize)));
+                    boost::asio::write(*socket, boost::asio::buffer(responseStr.data(), responseSize));
+                }
+
                 else
                 {
                     std::cerr << "No handler found for action: " << action << std::endl;
