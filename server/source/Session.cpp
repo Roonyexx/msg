@@ -109,6 +109,7 @@ void Session::processMessages()
                 // сделаю это если еще где-то сообщения понадобится отправлять, что вряд ли, на самом деле
                 if (socket && socket->is_open())
                 {
+                    response["action"] = msg["action"];
                     std::string responseStr = response.dump();
                     uint32_t responseSize = static_cast<uint32_t>(responseStr.size());
                     boost::asio::write(*socket, boost::asio::buffer(&responseSize, sizeof(responseSize)));

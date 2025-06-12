@@ -117,5 +117,7 @@
         "rope": "cpp",
         "slist": "cpp",
         "pqxx": "cpp"
-    }
+    },
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
