@@ -13,6 +13,7 @@ public class LoginHandler implements ServerEventHandler
         {
             App.mainUser.setId(response.optString("message"));
             // ui обновить
+            System.out.println("login successful");
         }
 
         else

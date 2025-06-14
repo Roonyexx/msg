@@ -45,6 +45,7 @@ public class EventHandlerDispatcher
         register("login", new LoginHandler());
         register("regiser", new RegistrationHandler());
         register("get_user_chats", new GetUserChats());
+        register("get_messages", new GetMessagesHandler());
     }
 
 }

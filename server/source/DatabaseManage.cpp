@@ -197,17 +197,41 @@ std::vector<json> DatabaseManage::getUserChats(const std::string &userId)
         chat["chat_id"] = row["chat_id"].as<std::string>();
         chat["title"] = row["title"].as<std::string>();
         chat["chat_type"] = chatTypeToString(static_cast<chatType>(row["chat_type_id"].as<uint64_t>()));
-        // Добавляем последнее сообщение (может быть null, если сообщений нет)
+
+        // для приватного чата добавляем объект пользователя
+        if (chat["chat_type"] == "private") {
+            // получаем id второго участника
+            pqxx::result userRes = txn.exec(
+                pqxx::zview(
+                    "select u.id, u.username "
+                    "from chat_participant cp "
+                    "join app_user u on cp.user_id = u.id "
+                    "where cp.chat_id = $1 and cp.user_id <> $2 "
+                    "limit 1"
+                ),
+                pqxx::params(row["chat_id"].as<std::string>(), userId)
+            );
+            if (!userRes.empty()) {
+                json userObj;
+                userObj["user_id"] = userRes[0]["id"].as<std::string>();
+                userObj["username"] = userRes[0]["username"].as<std::string>();
+                chat["user"] = userObj;
+            } else {
+                chat["user"] = nullptr;
+            }
+        }
+
+        // добавляем последнее сообщение
         if (row["last_message"].is_null())
-        {
             chat["last_message"] = nullptr;
-            chat["last_message_at"] = nullptr;
-        }
         else
-        {
             chat["last_message"] = row["last_message"].as<std::string>();
-            //chat["last_message_at"] = row["last_message_at"].as<std::string>();
-        }
+
+        if (row["last_message_at"].is_null())
+            chat["last_message_at"] = nullptr;
+        else
+            chat["last_message_at"] = row["last_message_at"].as<std::string>();
+
         chats.push_back(chat);
     }
     return chats;
@@ -217,10 +241,13 @@ std::vector<json> DatabaseManage::getChatMessages(const std::string &chatId)
 {
     pqxx::nontransaction txn(*conn);
     pqxx::result res = txn.exec(
-        pqxx::zview("select m.id, m.sender_id, m.content, m.sent_at "
-                    "from message m "
-                    "where m.chat_id = $1 "
-                    "order by m.sent_at asc"), 
+        pqxx::zview(
+            "select m.id, m.sender_id, m.content, m.sent_at, u.username "
+            "from message m "
+            "join app_user u on m.sender_id = u.id "
+            "where m.chat_id = $1 "
+            "order by m.sent_at asc"
+        ),
         pqxx::params(chatId)
     );
 
@@ -229,7 +256,12 @@ std::vector<json> DatabaseManage::getChatMessages(const std::string &chatId)
     {
         json message;
         message["id"] = row["id"].as<uint64_t>();
-        message["user_id"] = row["sender_id"].as<std::string>();
+        // Формируем объект пользователя
+        json userObj;
+        userObj["user_id"] = row["sender_id"].as<std::string>();
+        userObj["username"] = row["username"].as<std::string>();
+        message["user"] = userObj;
+
         message["content"] = row["content"].as<std::string>();
         message["timestamp"] = row["sent_at"].as<std::string>();
         messages.push_back(message);

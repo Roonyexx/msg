@@ -6,13 +6,15 @@ public class ChatMessage
 {
     private long id;
     private String content;
-    private Timestamp time;
+    private String time;
+    private User user;
     
     
-    public ChatMessage(long id, String content, Timestamp time)
+    public ChatMessage(long id, String content, User user, String time)
     {
         this.id = id;
         this.content = content;
+        this.user = user;
         this.time = time;
     }
 
@@ -26,8 +28,13 @@ public class ChatMessage
         return content;
     }
 
-    public Timestamp getTimestamp()
+    public String getTimestamp()
     {
         return time;
     }
+
+    public User getUser()
+    {
+        return user;
+    } 
 }

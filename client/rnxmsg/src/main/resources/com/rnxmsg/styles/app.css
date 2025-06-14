@@ -1,0 +1,24 @@
+.list-cell:odd,
+.list-cell:even {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-text-fill: #222;
+}
+
+
+.list-cell:filled:selected, .list-cell:filled:focused:selected {
+    -fx-background: #b3d1ff;
+    -fx-background-color: #b3d1ff;
+    -fx-text-fill: #222;
+}
+
+
+.no-selection .list-cell:filled:selected,
+.no-selection .list-cell:filled:focused:selected {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-inner-color;
+}
+.no-selection .list-cell:filled:selected > * {
+    -fx-text-fill: -fx-text-inner-color;
+}

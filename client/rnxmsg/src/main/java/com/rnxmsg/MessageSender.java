@@ -46,18 +46,17 @@ public class MessageSender
         catch(Exception e) { e.printStackTrace(); }
     }
 
-    public JSONObject getChatHistory(String chatId)
+    public void getChatHistory(String chatId)
     {
         JSONObject obj = new JSONObject();
         obj.put("action", "get_messages");
         obj.put("chat_id", chatId);
-        String response = "";
         try { 
             client.sendMessage(obj.toString()); 
-            response = client.receiveMessage();
+            ResponseWaiter.waitFor("get_messages", 5000);
         }
         catch (Exception e) { e.printStackTrace(); }
-        return new JSONObject(response);
+        
     }
 
     public void deleteMessageGlobal(long messageId, String chatId)

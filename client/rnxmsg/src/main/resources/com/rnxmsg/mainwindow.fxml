@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rnxmsg.controlers.MainController">
+    <left>
+        <VBox spacing="10" prefWidth="250" BorderPane.alignment="CENTER">
+            <children>
+                <TextField fx:id="searchField" promptText="Поиск чатов..." />
+                <ListView fx:id="chatListView" prefHeight="400"/>
+            </children>
+            <padding>
+                <Insets top="10" left="10" right="10" bottom="10"/>
+            </padding>
+        </VBox>
+    </left>
+    <center>
+        <VBox spacing="10" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="10" left="10" right="10" bottom="10"/>
+            </padding>
+            <children>
+                <Label fx:id="chatTitleLabel" text="Выберите чат" style="-fx-font-size: 18px;"/>
+                <ListView fx:id="messageListView" styleClass="no-selection" prefHeight="350"/>
+                <HBox spacing="10">
+                    <TextField fx:id="messageField" promptText="Введите сообщение..." HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="sendButton" text="Отправить"/>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>

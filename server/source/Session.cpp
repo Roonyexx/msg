@@ -104,7 +104,6 @@ void Session::processMessages()
                 auto msgHandler = MessageHandlerFactory::getInstance();
                 auto handler = msgHandler.getHandler(action);
                 if (handler) response = handler->handle(msg);
-
                 // отправляем ответ клиенту, вообще, думаю, по-хорошему нужно это вынести в метод сервера, 
                 // сделаю это если еще где-то сообщения понадобится отправлять, что вряд ли, на самом деле
                 if (socket && socket->is_open())

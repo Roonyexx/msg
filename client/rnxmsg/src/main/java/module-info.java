@@ -4,5 +4,6 @@ module com.rnxmsg {
     requires org.json;
 
     opens com.rnxmsg to javafx.fxml;
+    opens com.rnxmsg.controlers to javafx.fxml;
     exports com.rnxmsg;
 }

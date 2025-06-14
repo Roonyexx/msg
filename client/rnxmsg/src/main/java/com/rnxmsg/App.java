@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.*;
 import java.io.IOException;
 
 import org.json.JSONObject;
@@ -20,12 +21,39 @@ public class App extends Application {
 
     private static Scene scene;
     public static User mainUser;
+    public static Map<String, Chat> chatList = new java.util.concurrent.ConcurrentHashMap<>();
+    public static Chat currentChat;
+    private static MessageReceiver receiver;
+    private static NetworkClient client;
+    private static MessageSender sender;
+
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        scene = new Scene(loadFXML("mainwindow"), 640, 480);
         stage.setScene(scene);
         stage.show();
+        scene.getStylesheets().add(App.class.getResource("/com/rnxmsg/styles/app.css").toExternalForm());
+
+        // после запуска UI — запускаем сеть
+        new Thread(() -> {
+            try {
+                client = new NetworkClient("192.168.1.174", 5001);
+                sender = new MessageSender(client);
+                receiver = new MessageReceiver(client);
+                receiver.start();
+
+                App.mainUser = new User();
+                App.mainUser.setUsername("alice");
+                sender.sendLogin("alice", "123456");
+                while (App.mainUser.getId() == null || App.mainUser.getId().isEmpty()) {
+                    Thread.sleep(50);
+                }
+                sender.getUserChats(App.mainUser.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -42,22 +70,24 @@ public class App extends Application {
         mainUser = user;
     }
 
-    public static void main(String[] args) {
-        try
-        {
-            NetworkClient client = new NetworkClient("192.168.1.174", 5001);
-            MessageSender sender = new MessageSender(client);
-            MessageReceiver receiver = new MessageReceiver(client);
-            receiver.start();
-            mainUser = new User();
-            mainUser.setUsername("alice");
-            sender.sendLogin("alice", "123456");
-            sender.getUserChats(mainUser.getId());
+    public static MessageSender getSender()
+    {
+        return sender;
+    }
 
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        if (receiver != null && receiver.isAlive()) {
+            receiver.interrupt();
+            client.close();
         }
-        catch(Exception e) { e.printStackTrace(); }
+    }
+
+
+
+    public static void main(String[] args) {
         launch();
-        System.out.println("f");
     }
 
 }

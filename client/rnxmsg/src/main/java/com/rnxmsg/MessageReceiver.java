@@ -16,7 +16,7 @@ public class MessageReceiver extends Thread
 
     public void run()
     {
-        while(running)
+        while(!Thread.currentThread().isInterrupted())
         {
             try
             {
@@ -35,5 +35,10 @@ public class MessageReceiver extends Thread
             ResponseWaiter.complete(action, obj);
         }
         handlers.dispatch(obj);
+    }
+
+    public void Stop()
+    {
+        this.running = false;
     }
 }

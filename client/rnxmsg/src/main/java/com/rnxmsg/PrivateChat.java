@@ -8,6 +8,13 @@ public class PrivateChat implements Chat {
     private Vector<ChatMessage> messages;
     private User chatWith;
 
+    public PrivateChat(String uuid, User chatWith)
+    {
+        this.uuid = uuid;
+        this.chatWith = chatWith;
+        messages = new Vector<>();
+    }
+
     @Override
     public String getId() 
     {
@@ -34,5 +41,15 @@ public class PrivateChat implements Chat {
     public void addMessage(ChatMessage msg) 
     {
         messages.add(msg);
+    }
+
+    @Override
+    public void setMessages(Vector<ChatMessage> messages) {
+        this.messages = messages;
+    }
+
+    @Override
+    public Vector<ChatMessage> getMessages() {
+        return messages;
     }
 }
