@@ -32,7 +32,8 @@ public class EventHandlerDispatcher
 
     private void register(String name, ServerEventHandler handler)
     {
-        if (handlers.containsKey(name)) {
+        if (handlers.containsKey(name)) 
+        {
             System.err.println("Handler for action " + name + " is already registered");
             return;
         }
@@ -41,7 +42,9 @@ public class EventHandlerDispatcher
 
     private void registerAll()
     {
-        register(null, null);
+        register("login", new LoginHandler());
+        register("regiser", new RegistrationHandler());
+        register("get_user_chats", new GetUserChats());
     }
 
 }

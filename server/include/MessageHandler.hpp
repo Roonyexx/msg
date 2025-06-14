@@ -108,7 +108,7 @@ public:
             {
                 db->updateUserStatus(userId, userStatus::online);
                 response["status"] = "success";
-                response["user_id"] = userId;
+                response["message"] = userId;
             }
 
         }

@@ -14,6 +14,7 @@ import java.io.IOException;
 public class App extends Application {
 
     private static Scene scene;
+    public static User mainUser;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -31,14 +32,20 @@ public class App extends Application {
         return fxmlLoader.load();
     }
 
+    public static void setCurrentUser(User user)
+    {
+        mainUser = user;
+    }
+
     public static void main(String[] args) {
         try
         {
-            NetworkClient client = new NetworkClient("127.0.0.1", 5001);
+            NetworkClient client = new NetworkClient("192.168.1.174", 5001);
             MessageSender sender = new MessageSender(client);
             MessageReceiver receiver = new MessageReceiver(client);
             receiver.start();
             sender.sendLogin("alice", "123456");
+            sender.getUserChats(mainUser.getId());
         }
         catch(Exception e) { e.printStackTrace(); }
         launch();
