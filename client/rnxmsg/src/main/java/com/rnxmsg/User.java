@@ -13,6 +13,8 @@ public class User
         this.uuid = uuid;
         this.username = username;
     }
+    
+    public User() { }
 
     public String getUsername()
     {

@@ -30,6 +30,10 @@ public class MessageReceiver extends Thread
     private void handleServerResponse(String response)
     {
         JSONObject obj = new JSONObject(response);
+        String action = obj.optString("action", null);
+        if (action != null) {
+            ResponseWaiter.complete(action, obj);
+        }
         handlers.dispatch(obj);
     }
 }

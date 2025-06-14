@@ -181,7 +181,7 @@ std::vector<json> DatabaseManage::getUserChats(const std::string &userId)
     pqxx::nontransaction txn(*conn);
     pqxx::result res = txn.exec(
         pqxx::zview(
-            "select cp.chat_id, c.title, c.chat_type_id, "
+            "select cp.chat_id, c.title, c.chat_type_id, c.last_message_at, "
             "   (select m.content from message m where m.chat_id = cp.chat_id order by m.sent_at desc limit 1) as last_message "
             "from chat_participant cp "
             "join chat c on cp.chat_id = c.id "
@@ -199,9 +199,15 @@ std::vector<json> DatabaseManage::getUserChats(const std::string &userId)
         chat["chat_type"] = chatTypeToString(static_cast<chatType>(row["chat_type_id"].as<uint64_t>()));
         // Добавляем последнее сообщение (может быть null, если сообщений нет)
         if (row["last_message"].is_null())
+        {
             chat["last_message"] = nullptr;
+            chat["last_message_at"] = nullptr;
+        }
         else
+        {
             chat["last_message"] = row["last_message"].as<std::string>();
+            //chat["last_message_at"] = row["last_message_at"].as<std::string>();
+        }
         chats.push_back(chat);
     }
     return chats;

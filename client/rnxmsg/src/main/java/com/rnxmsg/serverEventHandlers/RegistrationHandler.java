@@ -10,13 +10,13 @@ public class RegistrationHandler implements ServerEventHandler
     @Override
     public void handle(JSONObject response) 
     {
-        if(response.optString("status") == "success")
+        if("success".equals(response.optString("status")))
         {
             App.mainUser.setId(response.optString("message"));
         }
         else
         {
-            
+
         }
     }
     

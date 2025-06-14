@@ -28,7 +28,10 @@ public class MessageSender
         obj.put("action", "login");
         obj.put("username", username);
         obj.put("password", password);
-        try { client.sendMessage(obj.toString()); }
+        try { 
+            client.sendMessage(obj.toString());
+            ResponseWaiter.waitFor("login", 5000);
+        }
         catch(Exception e) { e.printStackTrace(); }
     }
 
@@ -43,13 +46,18 @@ public class MessageSender
         catch(Exception e) { e.printStackTrace(); }
     }
 
-    public void getChatHistory(String chatId)
+    public JSONObject getChatHistory(String chatId)
     {
         JSONObject obj = new JSONObject();
         obj.put("action", "get_messages");
         obj.put("chat_id", chatId);
-        try { client.sendMessage(obj.toString()); }
+        String response = "";
+        try { 
+            client.sendMessage(obj.toString()); 
+            response = client.receiveMessage();
+        }
         catch (Exception e) { e.printStackTrace(); }
+        return new JSONObject(response);
     }
 
     public void deleteMessageGlobal(long messageId, String chatId)
@@ -109,7 +117,10 @@ public class MessageSender
         JSONObject obj = new JSONObject();
         obj.put("action", "get_user_chats");
         obj.put("user_id", userId);
-        try { client.sendMessage(obj.toString()); }
+        try { 
+            client.sendMessage(obj.toString()); 
+            ResponseWaiter.waitFor("get_user_chats", 5000);
+        }
         catch (Exception e) { e.printStackTrace(); }
     }
 }
