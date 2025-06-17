@@ -8,8 +8,10 @@
     <left>
         <VBox spacing="10" prefWidth="250" BorderPane.alignment="CENTER">
             <children>
-                <TextField fx:id="searchField" promptText="Поиск чатов..." />
-                
+                <HBox spacing="10">
+                    <TextField fx:id="searchField" promptText="Поиск чатов..."/>
+                    <Button fx:id="createGroupChatButton" text="Создать чат"/>
+                </HBox>
                 <ListView fx:id="userSearchListView" visible="false" managed="false"/>
                 <ListView fx:id="chatListView" prefHeight="400"/>
             </children>

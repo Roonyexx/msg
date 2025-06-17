@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,6 +47,9 @@ public class MainController {
 
     @FXML
     private ListView<User> userSearchListView;
+
+    @FXML
+    private Button createGroupChatButton;
 
     @FXML
     public void initialize() {
@@ -95,45 +99,106 @@ public class MainController {
         );
 
         // cell factory для пузырей сообщений
-        messageListView.setCellFactory(listView -> new ListCell<ChatMessage>() {
-            @Override
-            protected void updateItem(ChatMessage msg, boolean empty) {
-                super.updateItem(msg, empty);
-                if (empty || msg == null) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    boolean isMine = msg.getUser() != null && msg.getUser().getId().equals(App.mainUser.getId());
-
-                    Label nameLabel = new Label(msg.getUser() != null ? msg.getUser().getUsername() : "");
-                    nameLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #888;");
-                    Label contentLabel = new Label(msg.getContent());
-                    contentLabel.setWrapText(true);
-                    contentLabel.setStyle("-fx-background-color: " + (isMine ? "#cce5ff" : "#f1f0f0") + ";"
-                            + "-fx-padding: 8 12 8 12; -fx-background-radius: 12; -fx-font-size: 14px;"
-                            + "-fx-text-fill: #222;");
-                    Label timeLabel = new Label(msg.getTimestamp());
-                    timeLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #aaa;");
-
-                    VBox bubble = new VBox(nameLabel, contentLabel, timeLabel);
-                    bubble.setSpacing(2);
-
-                    HBox wrapper = new HBox(bubble);
-                    wrapper.setMaxWidth(listView.getWidth() - 40);
-                    wrapper.setFillHeight(false);
-                    wrapper.setStyle("-fx-padding: 4;");
-
-                    if (isMine) {
-                        wrapper.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        messageListView.setCellFactory(listView -> {
+            ListCell<ChatMessage> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(ChatMessage msg, boolean empty) {
+                    super.updateItem(msg, empty);
+                    if (empty || msg == null) {
+                        setText(null);
+                        setGraphic(null);
                     } else {
-                        wrapper.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                    }
+                        boolean isMine = msg.getUser() != null && msg.getUser().getId().equals(App.mainUser.getId());
 
-                    setGraphic(wrapper);
-                    setText(null);
+                        Label nameLabel = new Label(msg.getUser() != null ? msg.getUser().getUsername() : "");
+                        nameLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #888;");
+                        Label contentLabel = new Label(msg.getContent());
+                        contentLabel.setWrapText(true);
+                        contentLabel.setStyle("-fx-background-color: " + (isMine ? "#cce5ff" : "#f1f0f0") + ";"
+                                + "-fx-padding: 8 12 8 12; -fx-background-radius: 12; -fx-font-size: 14px;"
+                                + "-fx-text-fill: #222;");
+                        Label timeLabel = new Label(msg.getTimestamp());
+                        timeLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #aaa;");
+
+                        VBox bubble = new VBox(nameLabel, contentLabel, timeLabel);
+                        bubble.setSpacing(2);
+
+                        HBox wrapper = new HBox(bubble);
+                        wrapper.setMaxWidth(listView.getWidth() - 40);
+                        wrapper.setFillHeight(false);
+                        wrapper.setStyle("-fx-padding: 4;");
+
+                        if (isMine) {
+                            wrapper.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                        } else {
+                            wrapper.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        }
+
+                        setGraphic(wrapper);
+                        setText(null);
+                    }
                 }
+
+            };
+            // Контекстное меню
+            ContextMenu contextMenu = new ContextMenu();
+
+            MenuItem deleteForMe = new MenuItem("Удалить только для себя");
+            deleteForMe.setOnAction(event -> {
+                ChatMessage message = cell.getItem();
+                if (message != null) {
+                    App.currentChat.getMessages().removeIf(msg -> msg.getId() == message.getId());
+                    showMessagesForCurrentChat();
+                    new Thread(() -> App.getSender().deteteMessageLocal(
+                        message.getId(),
+                        App.mainUser.getId(),
+                        App.currentChat.getId()
+                    )).start();
+                }
+            });
+
+            MenuItem deleteGlobal = new MenuItem("Удалить для всех");
+            deleteGlobal.setOnAction(event -> {
+                ChatMessage msg = cell.getItem();
+                if (msg != null && msg.getUser() != null && msg.getUser().getId().equals(App.mainUser.getId())) {
+                    new Thread(() -> App.getSender().deleteMessageGlobal(
+                        msg.getId(),
+                        App.currentChat.getId()
+                    )).start();
+                }
+            });
+
+            contextMenu.getItems().addAll(deleteForMe, deleteGlobal);
+
+            cell.setOnContextMenuRequested(event -> {
+                if (!cell.isEmpty() && cell.getItem() != null) {
+
+                    deleteGlobal.setDisable(
+                        cell.getItem().getUser() == null ||
+                        !cell.getItem().getUser().getId().equals(App.mainUser.getId())
+                    );
+                    contextMenu.show(cell, event.getScreenX(), event.getScreenY());
+                }
+            });
+
+            cell.setOnMouseClicked(event -> {
+                if (contextMenu.isShowing()) contextMenu.hide();
+            });
+
+            return cell;
+        });
+
+        createGroupChatButton.setOnAction(e -> {
+            try {
+                App.setRoot("create_group_chat");
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
         });
+
+        if (!App.chatList.isEmpty()) {
+            updateChatListUI();
+        }
     }
 
     @FXML

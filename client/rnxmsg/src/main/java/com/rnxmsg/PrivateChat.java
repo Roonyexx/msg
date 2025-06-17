@@ -52,4 +52,9 @@ public class PrivateChat implements Chat {
     public Vector<ChatMessage> getMessages() {
         return messages;
     }
+
+    public User getOtherUser()
+    {
+        return chatWith;
+    }
 }

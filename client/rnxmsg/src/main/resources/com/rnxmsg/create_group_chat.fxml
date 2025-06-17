@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rnxmsg.controlers.CreateGroupChatController">
+    <padding>
+        <Insets top="30" left="30" right="30" bottom="30"/>
+    </padding>
+    <children>
+        <Label text="Создание группового чата" style="-fx-font-size: 20px;"/>
+        <TextField fx:id="chatNameField" promptText="Название чата"/>
+        <Label text="Выберите участников:"/>
+        <ListView fx:id="usersListView" prefHeight="200"/>
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="createButton" text="Создать"/>
+            <Button fx:id="cancelButton" text="Отмена"/>
+        </HBox>
+    </children>
+</VBox>

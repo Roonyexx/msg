@@ -248,7 +248,17 @@ public:
             auto db = DatabaseManage::getInstance();
             if (db->deleteMessageGlobal(messageId))
             {
+                response["action"] = "delete_message_global";
                 response["status"] = "success";
+                response["chat_id"] = chatId;
+                response["message_id"] = messageId;
+                auto usersToPing = db->getUsersInChat(chatId);
+                
+                MessageSender sender = MessageSender::getInstance();
+                for (const auto& userId : usersToPing)
+                {
+                    sender.sendMessage(userId, response);
+                }
             }
             else
             {

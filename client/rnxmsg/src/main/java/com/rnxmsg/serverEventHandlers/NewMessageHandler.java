@@ -1,5 +1,8 @@
 package com.rnxmsg.serverEventHandlers;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.json.JSONObject;
 
 import com.rnxmsg.App;
@@ -25,11 +28,13 @@ public class NewMessageHandler implements ServerEventHandler {
             new Thread(() -> App.getSender().getUserChats(App.mainUser.getId())).start();
         }
 
+
+
         ChatMessage msg = new ChatMessage(
             Long.parseLong(messageId),
             content,
             new User(fromUserId, username), 
-            java.time.LocalTime.now().toString()
+            OffsetDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
         );
 
         chat.addMessage(msg);

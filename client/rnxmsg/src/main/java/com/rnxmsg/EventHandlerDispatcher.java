@@ -50,6 +50,7 @@ public class EventHandlerDispatcher
         register("new_message", new NewMessageHandler());
         register("search_users", new SearchUsersHandler());
         register("create_chat", new CreateChatHandler());
+        register("delete_message_global", new DeleteMessageHandler());
 
 
     }
