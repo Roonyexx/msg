@@ -51,8 +51,6 @@ public class EventHandlerDispatcher
         register("search_users", new SearchUsersHandler());
         register("create_chat", new CreateChatHandler());
         register("delete_message_global", new DeleteMessageHandler());
-
-
     }
 
 }

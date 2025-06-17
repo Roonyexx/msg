@@ -285,7 +285,6 @@ std::vector<json> DatabaseManage::getChatMessages(const std::string &chatId)
     {
         json message;
         message["id"] = row["id"].as<uint64_t>();
-        // Формируем объект пользователя
         json userObj;
         userObj["user_id"] = row["sender_id"].as<std::string>();
         userObj["username"] = row["username"].as<std::string>();
