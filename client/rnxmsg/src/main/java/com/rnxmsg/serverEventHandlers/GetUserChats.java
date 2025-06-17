@@ -1,11 +1,9 @@
 package com.rnxmsg.serverEventHandlers;
 
-import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.rnxmsg.Chat;
 import com.rnxmsg.GroupChat;
 import com.rnxmsg.PrivateChat;
 import com.rnxmsg.User;

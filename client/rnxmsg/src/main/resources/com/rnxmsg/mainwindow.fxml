@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rnxmsg.controlers.MainController">
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rnxmsg.controlers.MainController"
+            styleClass="root">
+
+    <!-- Левая панель -->
     <left>
         <VBox spacing="10" prefWidth="250" BorderPane.alignment="CENTER">
-            <children>
-                <HBox spacing="10">
-                    <TextField fx:id="searchField" promptText="Поиск чатов..."/>
-                    <Button fx:id="createGroupChatButton" text="Создать чат"/>
-                </HBox>
-                <ListView fx:id="userSearchListView" visible="false" managed="false"/>
-                <ListView fx:id="chatListView" prefHeight="400"/>
-            </children>
             <padding>
                 <Insets top="10" left="10" right="10" bottom="10"/>
             </padding>
+            <children>
+                <HBox spacing="10">
+                    <TextField fx:id="searchField" promptText="Поиск чатов..." />
+                    <Button fx:id="createGroupChatButton" text="Чат" />
+                </HBox>
+                <ListView fx:id="userSearchListView" visible="false" managed="false" />
+                <ListView fx:id="chatListView" VBox.vgrow="ALWAYS" />
+            </children>
         </VBox>
     </left>
+
+    <!-- Центральная панель -->
     <center>
         <VBox spacing="10" alignment="TOP_LEFT">
             <padding>
                 <Insets top="10" left="10" right="10" bottom="10"/>
             </padding>
             <children>
-                <Label fx:id="chatTitleLabel" text="Выберите чат" style="-fx-font-size: 18px;"/>
-                <ListView fx:id="messageListView" styleClass="no-selection" prefHeight="350"/>
+                <Label fx:id="chatTitleLabel" text="Выберите чат" style="-fx-font-size: 18px;" />
+                <ListView fx:id="messageListView" styleClass="no-selection" VBox.vgrow="ALWAYS" />
                 <HBox spacing="10">
                     <TextField fx:id="messageField" promptText="Введите сообщение..." HBox.hgrow="ALWAYS"/>
                     <Button fx:id="sendButton" text="Отправить" onAction="#handleSendButton"/>
@@ -35,4 +42,5 @@
             </children>
         </VBox>
     </center>
+
 </BorderPane>

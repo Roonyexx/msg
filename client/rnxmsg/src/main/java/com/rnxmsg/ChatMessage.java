@@ -1,6 +1,5 @@
 package com.rnxmsg;
 
-import java.security.Timestamp;
 
 public class ChatMessage 
 {

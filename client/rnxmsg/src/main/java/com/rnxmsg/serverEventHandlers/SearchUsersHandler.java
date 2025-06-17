@@ -3,9 +3,6 @@ package com.rnxmsg.serverEventHandlers;
 import org.json.*;
 import java.util.*;
 
-import com.rnxmsg.App;
-import com.rnxmsg.Chat;
-import com.rnxmsg.ChatMessage;
 import com.rnxmsg.User;
 import com.rnxmsg.controlers.MainController;
 import javafx.application.Platform;

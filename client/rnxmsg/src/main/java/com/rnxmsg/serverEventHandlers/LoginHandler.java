@@ -35,7 +35,7 @@ public class LoginHandler implements ServerEventHandler
 
         else
         {
-            //вывести сообщение о ошибке.
+            // вывести сообщение о ошибке.
         }
 
     }

@@ -16,6 +16,7 @@ import com.rnxmsg.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.layout.Region;
 
 public class MainController {
     private static MainController instance;
@@ -114,24 +115,34 @@ public class MainController {
                         nameLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #888;");
                         Label contentLabel = new Label(msg.getContent());
                         contentLabel.setWrapText(true);
-                        contentLabel.setStyle("-fx-background-color: " + (isMine ? "#cce5ff" : "#f1f0f0") + ";"
+                        contentLabel.setStyle("-fx-background-color: " + (isMine ? "#1888fe" : "#e8e8ea") + ";"
                                 + "-fx-padding: 8 12 8 12; -fx-background-radius: 12; -fx-font-size: 14px;"
-                                + "-fx-text-fill: #222;");
+                                + "-fx-text-fill: " + (isMine ? "#ffffff" : "#000000") + ";");
                         Label timeLabel = new Label(msg.getTimestamp());
                         timeLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #aaa;");
 
                         VBox bubble = new VBox(nameLabel, contentLabel, timeLabel);
                         bubble.setSpacing(2);
+                        bubble.setMaxWidth(30); 
+                        bubble.setMinWidth(Region.USE_PREF_SIZE);
+                        bubble.setPrefWidth(Region.USE_COMPUTED_SIZE);
+
+                        if (isMine) {
+                            bubble.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+                        } else {
+                            bubble.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+                        }
 
                         HBox wrapper = new HBox(bubble);
-                        wrapper.setMaxWidth(listView.getWidth() - 40);
                         wrapper.setFillHeight(false);
                         wrapper.setStyle("-fx-padding: 4;");
 
                         if (isMine) {
-                            wrapper.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                            wrapper.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+                            wrapper.setPadding(new javafx.geometry.Insets(0, 10, 0, 40)); 
                         } else {
-                            wrapper.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                            wrapper.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+                            wrapper.setPadding(new javafx.geometry.Insets(0, 40, 0, 10)); 
                         }
 
                         setGraphic(wrapper);

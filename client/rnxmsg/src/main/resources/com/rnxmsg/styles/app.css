@@ -1,24 +1,73 @@
+/* === Общий фон приложения === */
+.root {
+    -fx-background-color: white;
+}
+
+.button {
+    -fx-background-color: white;
+    -fx-text-fill: #222;
+    -fx-border-color: black;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 6 16;
+}
+
+.button:focused, .text-field:focused, .list-view:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button:hover {
+    -fx-background-color: #f0f0f0; 
+}
+
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: black;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 6 12;
+    -fx-text-fill: #222;
+}
+
+.list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: black;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+}
+
 .list-cell:odd,
 .list-cell:even {
-    -fx-background: transparent;
     -fx-background-color: transparent;
+    -fx-padding: 8 12;
     -fx-text-fill: #222;
 }
-
 
 .list-cell:filled:selected, .list-cell:filled:focused:selected {
-    -fx-background: #b3d1ff;
     -fx-background-color: #b3d1ff;
     -fx-text-fill: #222;
+    -fx-background-radius: 18;
 }
-
 
 .no-selection .list-cell:filled:selected,
 .no-selection .list-cell:filled:focused:selected {
-    -fx-background: transparent;
     -fx-background-color: transparent;
     -fx-text-fill: -fx-text-inner-color;
 }
+
 .no-selection .list-cell:filled:selected > * {
     -fx-text-fill: -fx-text-inner-color;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-shape: "";           
+    -fx-opacity: 0;           
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
 }

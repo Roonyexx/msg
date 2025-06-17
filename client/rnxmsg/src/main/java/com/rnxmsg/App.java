@@ -9,10 +9,6 @@ import javafx.stage.Stage;
 import java.util.*;
 import java.io.IOException;
 
-import org.json.JSONObject;
-
-import com.rnxmsg.serverEventHandlers.GetUserChats;
-import com.rnxmsg.serverEventHandlers.LoginHandler;
 
 /**
  * JavaFX App
@@ -44,12 +40,6 @@ public class App extends Application {
                 receiver.start();
 
                 App.mainUser = new User();
-                // App.mainUser.setUsername("alice");
-                // sender.sendLogin("alice", "123456");
-                // while (App.mainUser.getId() == null || App.mainUser.getId().isEmpty()) {
-                //     Thread.sleep(50);
-                // }
-                // sender.getUserChats(App.mainUser.getId());
             } catch (Exception e) {
                 e.printStackTrace();
             }

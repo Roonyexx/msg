@@ -39,7 +39,6 @@ public class CreateChatHandler implements ServerEventHandler {
                 }
                 App.chatList.put(chatId, chat);
 
-                // обновить UI
                 MainController controller = MainController.getInstance();
                 if (controller != null) {
                     Platform.runLater(controller::updateChatListUI);

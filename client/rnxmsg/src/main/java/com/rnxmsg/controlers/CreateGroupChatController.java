@@ -27,7 +27,7 @@ public class CreateGroupChatController {
 
     @FXML
     public void initialize() {
-        // Получаем пользователей из приватных чатов
+        // получаем пользователей из приватных чатов
         List<User> users = App.chatList.values().stream()
             .filter(chat -> chat instanceof PrivateChat)
             .map(chat -> {
@@ -57,7 +57,6 @@ public class CreateGroupChatController {
         String chatName = chatNameField.getText();
         List<User> selectedUsers = usersListView.getSelectionModel().getSelectedItems();
         if (chatName == null || chatName.isEmpty() || selectedUsers.isEmpty()) {
-            // Можно показать предупреждение
             return;
         }
         Vector<String> userIds = new Vector<>();
