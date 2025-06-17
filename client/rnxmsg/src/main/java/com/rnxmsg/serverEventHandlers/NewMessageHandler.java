@@ -22,7 +22,7 @@ public class NewMessageHandler implements ServerEventHandler {
         
         Chat chat = App.chatList.get(chatId);
         if (chat == null) {
-            return;
+            new Thread(() -> App.getSender().getUserChats(App.mainUser.getId())).start();
         }
 
         ChatMessage msg = new ChatMessage(

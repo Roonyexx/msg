@@ -45,6 +45,8 @@ private:
         registerHandler("leave_chat", std::make_shared<LeaveChatEventHandler>());
         registerHandler("chat_invite", std::make_shared<ChatInviteEventHandler>());
         registerHandler("get_user_chats", std::make_shared<GetUserChatsEventHandler>());
+        registerHandler("search_users", std::make_shared<SearchUsersEventHandler>());
+
     }
 
 

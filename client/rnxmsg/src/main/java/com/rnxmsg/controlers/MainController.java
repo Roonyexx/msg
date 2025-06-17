@@ -5,6 +5,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Vector;
+
 import com.rnxmsg.*;
 
 import javafx.application.Platform;
@@ -40,7 +45,40 @@ public class MainController {
     private Button sendButton;
 
     @FXML
+    private ListView<User> userSearchListView;
+
+    @FXML
     public void initialize() {
+
+        userSearchListView.setCellFactory(listView -> new ListCell<User>() {
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                setText((empty || user == null) ? null : user.getUsername());
+            }
+        });
+
+        // обработка выбора пользователя
+        userSearchListView.setOnMouseClicked(event -> {
+            User selected = userSearchListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                createPrivateChatWithUser(selected);
+                userSearchListView.setVisible(false);
+                userSearchListView.setManaged(false);
+                searchField.clear();
+            }
+        });
+
+        searchField.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.trim().isEmpty()) {
+                new Thread(() -> App.getSender().searchUsers(newText.trim())).start();
+            } else {
+                userSearchListView.setVisible(false);
+                userSearchListView.setManaged(false);
+            }
+        });
+
+
 
         chatListView.setItems(FXCollections.observableArrayList());
         // показываем название чата в списке
@@ -106,7 +144,7 @@ public class MainController {
                 System.currentTimeMillis(), 
                 message,
                 App.mainUser,
-                java.time.LocalTime.now().toString() 
+                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
             );
             App.currentChat.addMessage(chatMessage);
             new Thread(() -> App.getSender().sendMessage(App.mainUser.getId(), 
@@ -147,5 +185,18 @@ public class MainController {
         } else {
             messageListView.setItems(FXCollections.observableArrayList());
         }
+    }
+
+    public void showUserSearchResults(List<User> users) {
+        userSearchListView.setItems(FXCollections.observableArrayList(users));
+        userSearchListView.setVisible(true);
+        userSearchListView.setManaged(true);
+    }
+
+    private void createPrivateChatWithUser(User user) {
+        Vector<String> userIds = new Vector<>();
+        userIds.add(App.mainUser.getId());
+        userIds.add(user.getId());
+        new Thread(() -> App.getSender().createChat(user.getUsername(), "private", userIds)).start();
     }
 }

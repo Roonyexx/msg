@@ -120,30 +120,59 @@ bool DatabaseManage::deleteMessageLocal(const std::string &userId, const uint64_
     }
 }
 
-std::string DatabaseManage::createChat(const std::string &chatTitle, const chatType type, const std::vector<std::string> &userIds)
+json DatabaseManage::createChat(const std::string &chatTitle, const chatType type, const std::vector<std::string> &userIds)
 {
     pqxx::work txn(*conn);
     try
     {
         userChatRole role = (type == chatType::chatGroup) ? userChatRole::owner : userChatRole::member;
-        pqxx::row row = txn.exec(pqxx::zview("insert into chat (title, chat_type_id) values ($1, $2) returning id"), 
-                                    pqxx::params(chatTitle, static_cast<uint64_t>(type)))[0];
+        pqxx::row row = txn.exec(
+            pqxx::zview("insert into chat (title, chat_type_id) values ($1, $2) returning id, title, chat_type_id"),
+            pqxx::params(chatTitle, static_cast<uint64_t>(type))
+        )[0];
 
         std::string chatId = row["id"].as<std::string>();
+        std::string title = row["title"].as<std::string>();
+        uint64_t chatTypeId = row["chat_type_id"].as<uint64_t>();
+    
 
-        for (const auto& userId : userIds) 
+        for (const auto& userId : userIds)
         {
             addChatParticipant(chatId, userId, role, txn);
             role = userChatRole::member;
         }
 
+        // получаем пользователей чата
+        pqxx::result res = txn.exec(
+            pqxx::zview(
+                "select cp.user_id, u.username from chat_participant cp "
+                "join app_user u on cp.user_id = u.id "
+                "where cp.chat_id = $1"
+            ),
+            pqxx::params(chatId)
+        );
+
         txn.commit();
-        return chatId;
+
+        // формируем json
+        json result;
+        result["chat_id"] = chatId;
+        result["title"] = title;
+        result["is_private"] = (chatTypeId == static_cast<uint64_t>(chatType::chatPrivate)) ? "true" : "false";
+        result["users"] = json::array();
+        for (const auto& row : res)
+        {
+            json user;
+            user["user_id"] = row["user_id"].as<std::string>();
+            user["username"] = row["username"].as<std::string>();
+            result["users"].push_back(user);
+        }
+        return result;
     }
-    catch (const pqxx::sql_error& e) 
+    catch (const pqxx::sql_error& e)
     {
         std::cerr << "SQL error: " << e.what() << std::endl;
-        return "";
+        return json{};
     }
 }
 
@@ -338,4 +367,22 @@ std::string DatabaseManage::chatTypeToString(chatType type)
         case chatType::chatGroup: return "group";
         default: return "unknown";
     }
+}
+
+std::vector<json> DatabaseManage::searchUsers(const std::string& query)
+{
+    pqxx::work txn(*conn);
+    std::vector<json> users;
+    pqxx::result res = txn.exec(
+        pqxx::zview("select id, username from app_user where username ilike $1 limit 20"),
+        pqxx::params("%" + query + "%")
+    );
+    for (const auto& row : res)
+    {
+        json user;
+        user["user_id"] = row["id"].as<std::string>();
+        user["username"] = row["username"].as<std::string>();
+        users.push_back(user);
+    }
+    return users;
 }

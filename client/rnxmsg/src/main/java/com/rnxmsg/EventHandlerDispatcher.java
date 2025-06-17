@@ -24,7 +24,7 @@ public class EventHandlerDispatcher
         } 
         else
         {
-            System.out.println("Action: " + action + "is not registered");
+            System.out.println("Action: " + action + " is not registered");
             System.out.println(response.toString());
         }
     } 
@@ -43,11 +43,14 @@ public class EventHandlerDispatcher
     private void registerAll()
     {
         register("login", new LoginHandler());
-        register("regiser", new RegistrationHandler());
+        register("register", new RegistrationHandler());
         register("get_user_chats", new GetUserChats());
         register("get_messages", new GetMessagesHandler());
         register("send_message", new DefaultHendler());
         register("new_message", new NewMessageHandler());
+        register("search_users", new SearchUsersHandler());
+        register("create_chat", new CreateChatHandler());
+
 
     }
 

@@ -10,6 +10,10 @@ import javafx.application.Platform;
 
 import com.rnxmsg.App;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
 public class GetMessagesHandler implements ServerEventHandler {
@@ -25,6 +29,10 @@ public class GetMessagesHandler implements ServerEventHandler {
                     long id = msgObj.optLong("id", 0);
                     String content = msgObj.optString("content", "");
                     String timestamp = msgObj.optString("timestamp", "");
+                    timestamp = timestamp.replace(" ", "T");
+                    OffsetDateTime dateTime = OffsetDateTime.parse(timestamp);
+                    ZonedDateTime localTime = dateTime.atZoneSameInstant(ZoneId.systemDefault());
+                    String formattedTime = localTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
                     JSONObject userObj = msgObj.optJSONObject("user");
                     User user = null;
@@ -32,7 +40,7 @@ public class GetMessagesHandler implements ServerEventHandler {
                         user = new User(userObj.optString("user_id", ""), 
                                         userObj.optString("username", ""));
                     }
-                    ChatMessage chatMessage = new ChatMessage(id, content, user, timestamp);
+                    ChatMessage chatMessage = new ChatMessage(id, content, user, formattedTime);
                     messageList.add(chatMessage);
                 }
             }

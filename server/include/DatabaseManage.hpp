@@ -66,7 +66,7 @@ public:
                             const std::string& chatId);
 
     // создает чат, возвращает его uuid
-    std::string createChat(const std::string& chatTitle, 
+    json createChat(const std::string& chatTitle, 
                            const chatType type, 
                            const std::vector<std::string>& userIds);
 
@@ -89,6 +89,9 @@ public:
 
     // удаляет связь между пользователем и чатом
     bool leaveChat(const std::string& chatId, const std::string& userId);
+
+    // возвращает список пользователей найденных по юзернейму
+    std::vector<json> searchUsers(const std::string& query);
  
 private:
     bool addChatParticipant(const std::string& chatId, 

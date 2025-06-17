@@ -9,6 +9,8 @@
         <VBox spacing="10" prefWidth="250" BorderPane.alignment="CENTER">
             <children>
                 <TextField fx:id="searchField" promptText="Поиск чатов..." />
+                
+                <ListView fx:id="userSearchListView" visible="false" managed="false"/>
                 <ListView fx:id="chatListView" prefHeight="400"/>
             </children>
             <padding>

@@ -19,7 +19,6 @@ public:
     {
         if (sessions.find(userId) == sessions.end())
         {
-            std::cout << "new socket";
             sessions[userId] = socket;
         }
     }

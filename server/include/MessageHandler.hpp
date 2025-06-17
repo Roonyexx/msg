@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include "databaseManage.hpp"
+#include "MessageSender.hpp"
 
 using json = nlohmann::json;
 
@@ -223,6 +224,7 @@ public:
     }
 };
 
+// сообщение JSON  
 // {
 //   "action": "delete_message_global",
 //   "message_id": ,
@@ -265,7 +267,7 @@ public:
 };
 
 
-
+// сообщение JSON  
 // {
 //   "action": "delete_message_local",
 //   "message_id": ,
@@ -309,6 +311,7 @@ public:
     }
 };
 
+// сообщение JSON  
 // {
 //   "action": "create_chat",
 //   "chat_name": ""
@@ -358,6 +361,7 @@ public:
 };
 
 
+// сообщение JSON  
 // {
 //   "action": "leave_chat",
 //   "user_id": ""
@@ -400,6 +404,7 @@ public:
 };
 
 
+// сообщение JSON  
 // {
 //   "action": "chat_invite",
 //   "user_id": ""
@@ -442,6 +447,7 @@ public:
 };
 
 
+// сообщение JSON  
 // {
 //   "action": "get_user_chats",
 //   "user_id": ""
@@ -468,6 +474,39 @@ public:
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
+            response["status"] = "error";
+            response["message"] = e.what();
+        }
+        return response;
+    }
+};
+
+// сообщение JSON  
+// { 
+//   "action": "search_users", 
+//   "query": "" 
+// }
+// ответ JSON
+// { 
+//   "status": "", 
+//   "users": [ ] 
+// }
+class SearchUsersEventHandler : public IMsgEventHandler
+{
+public:
+    json handle(const json& msg) override
+    {
+        json response;
+        try
+        {
+            std::string query = msg.value("query", "");
+            auto db = DatabaseManage::getInstance();
+            auto users = db->searchUsers(query); 
+            response["status"] = "success";
+            response["users"] = users;
+        }
+        catch(const std::exception& e)
+        {
             response["status"] = "error";
             response["message"] = e.what();
         }

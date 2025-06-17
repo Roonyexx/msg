@@ -34,7 +34,7 @@ public class GetUserChats implements ServerEventHandler{
                             user = new User(userObj.optString("user_id"), userObj.optString("username"));
                         }
                         PrivateChat privateChat = new PrivateChat(uuid, user);
-                        App.chatList.put(privateChat.getTitle(), privateChat);   
+                        App.chatList.put(privateChat.getId(), privateChat);   
                     }
                 }
             }

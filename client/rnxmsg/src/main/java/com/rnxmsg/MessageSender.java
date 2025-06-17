@@ -122,10 +122,23 @@ public class MessageSender
         JSONObject obj = new JSONObject();
         obj.put("action", "get_user_chats");
         obj.put("user_id", userId);
-        
+
         try { 
             client.sendMessage(obj.toString()); 
             ResponseWaiter.waitFor("get_user_chats", 5000);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void searchUsers(String query)
+    {
+        JSONObject obj = new JSONObject();
+        obj.put("action", "search_users");
+        obj.put("query", query);
+
+        try {
+            client.sendMessage(obj.toString());
+            ResponseWaiter.waitFor("search_users", 5000);
         }
         catch (Exception e) { e.printStackTrace(); }
     }
