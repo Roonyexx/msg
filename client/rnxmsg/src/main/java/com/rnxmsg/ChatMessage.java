@@ -18,6 +18,11 @@ public class ChatMessage
         this.time = time;
     }
 
+    public void setId(long id)
+    {
+        this.id = id;
+    }
+
     public long getId()
     {
         return id;

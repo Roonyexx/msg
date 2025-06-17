@@ -21,6 +21,7 @@ public class MessageReceiver extends Thread
             try
             {
                 String response = client.receiveMessage();
+                System.out.println(response);
                 handleServerResponse(response);
             }
             catch (Exception e) { e.printStackTrace(); }

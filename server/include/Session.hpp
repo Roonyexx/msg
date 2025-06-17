@@ -7,6 +7,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include "MessageSender.hpp"
 #include "MessageHandlerFactory.hpp"
 
 using tcp = boost::asio::ip::tcp;
@@ -27,6 +28,8 @@ public:
     // все потоки завершатся, а сокет закроется
     void stop();
 
+    void send(json msg);
+
 private:
     // читаем сообщения от клиента
     // и помещаем их в очередь сообщений
@@ -38,6 +41,7 @@ private:
 
     std::shared_ptr<tcp::socket> socket;
 
+    std::string userId;
     std::queue<json> messages;
     std::mutex queueMutex;
     std::condition_variable cv;

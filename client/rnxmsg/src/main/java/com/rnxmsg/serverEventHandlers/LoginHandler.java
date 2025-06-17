@@ -1,8 +1,13 @@
 package com.rnxmsg.serverEventHandlers;
 
+import java.io.IOException;
+
 import org.json.JSONObject;
 
 import com.rnxmsg.App;
+import com.rnxmsg.controlers.MainController;
+
+import javafx.application.Platform;
 
 public class LoginHandler implements ServerEventHandler 
 {
@@ -11,9 +16,21 @@ public class LoginHandler implements ServerEventHandler
     {
         if("success".equals(response.optString("status")))
         {
-            App.mainUser.setId(response.optString("message"));
-            // ui обновить
-            System.out.println("login successful");
+            String userId = response.optString("message");
+            App.mainUser.setId(userId);
+            Platform.runLater(() -> {
+                try {
+                    App.setRoot("mainwindow");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            new Thread(() -> App.getSender().getUserChats(userId)).start();
+
+            MainController controller = MainController.getInstance();
+            if (controller != null) {
+                javafx.application.Platform.runLater(controller::updateChatListUI);
+            }
         }
 
         else

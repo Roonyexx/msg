@@ -148,9 +148,28 @@ public:
             std::string content { msg.value("content", "") };
 
             auto db = DatabaseManage::getInstance();
-            if (db->saveMessage(userId, chatId, content))
+            if (!(response["message"] = db->saveMessage(userId, chatId, content)).empty())
             {
                 response["status"] = "success";
+                auto usersToPing = db->getUsersInChat(chatId);
+                usersToPing.erase(
+                    std::remove(usersToPing.begin(), usersToPing.end(), userId),
+                    usersToPing.end()
+                );
+                json ping;
+                ping["action"] = "new_message";
+                ping["chat_id"] = chatId;
+                ping["from_user_id"] = userId;
+                ping["username"] = db->getUsername(userId);
+                ping["content"] = content;
+                ping["message_id"] = response["message"];
+                
+                auto sender = MessageSender::getInstance();
+                for (const auto& userid : usersToPing)
+                {
+                    sender.sendMessage(userid, ping);
+                }
+
             }
             else
             {

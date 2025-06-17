@@ -35,14 +35,20 @@ public class MessageSender
         catch(Exception e) { e.printStackTrace(); }
     }
 
-    public void sendMessage(String userId, String chatId, String content)
+    public void sendMessage(String userId, String chatId, ChatMessage message)
     {
         JSONObject obj = new JSONObject();
         obj.put("action", "send_message");
-        obj.put("userId", userId);
-        obj.put("chatId", chatId);
-        obj.put("content", content);
-        try { client.sendMessage(obj.toString()); }
+        obj.put("user_id", userId);
+        obj.put("chat_id", chatId);
+        obj.put("content", message.getContent());
+        System.out.println(obj.toString());
+        try { 
+            client.sendMessage(obj.toString());
+            String idStr = ResponseWaiter.waitFor("send_message", 5000).optString("message");
+            long id = Long.parseLong(idStr);
+            message.setId(id); 
+        }
         catch(Exception e) { e.printStackTrace(); }
     }
 
@@ -116,6 +122,7 @@ public class MessageSender
         JSONObject obj = new JSONObject();
         obj.put("action", "get_user_chats");
         obj.put("user_id", userId);
+        
         try { 
             client.sendMessage(obj.toString()); 
             ResponseWaiter.waitFor("get_user_chats", 5000);

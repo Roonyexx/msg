@@ -20,9 +20,11 @@ void Session::stop()
 {
     running = false;
     cv.notify_all(); // пробуждаем все потоки, ожидающие сообщений
+    MessageSender::getInstance().disconnect(userId);
     if (socket && socket->is_open())
-        socket->close(); 
+        socket->close();
 }
+
 
 void Session::handleClient()
 {
@@ -104,6 +106,18 @@ void Session::processMessages()
                 auto msgHandler = MessageHandlerFactory::getInstance();
                 auto handler = msgHandler.getHandler(action);
                 if (handler) response = handler->handle(msg);
+                else
+                {
+                    std::cerr << "No handler found for action: " << action << std::endl;
+                    continue; 
+                }
+
+                if ((action == "register" || action == "login") && response["status"] == "success")
+                {
+                    userId = response["message"];
+                    MessageSender::getInstance().newConnect(userId, socket);
+                }
+
                 // отправляем ответ клиенту, вообще, думаю, по-хорошему нужно это вынести в метод сервера, 
                 // сделаю это если еще где-то сообщения понадобится отправлять, что вряд ли, на самом деле
                 if (socket && socket->is_open())
@@ -113,12 +127,6 @@ void Session::processMessages()
                     uint32_t responseSize = static_cast<uint32_t>(responseStr.size());
                     boost::asio::write(*socket, boost::asio::buffer(&responseSize, sizeof(responseSize)));
                     boost::asio::write(*socket, boost::asio::buffer(responseStr.data(), responseSize));
-                }
-
-                else
-                {
-                    std::cerr << "No handler found for action: " << action << std::endl;
-                    continue; 
                 }
             }
             catch(const std::exception& e)

@@ -69,21 +69,21 @@ bool DatabaseManage::updateUserStatus(const std::string &userId, const userStatu
     }
 }
 
-bool DatabaseManage::saveMessage(const std::string &userId, const std::string &chatId, const std::string &content)
+std::string DatabaseManage::saveMessage(const std::string &userId, const std::string &chatId, const std::string &content)
 {
     pqxx::work txn(*conn);
     try
     {
-        txn.exec(
-            pqxx::zview("insert into message (sender_id, chat_id, content) values ($1, $2, $3)"),
-            pqxx::params(userId, chatId, content));
+        auto res = txn.exec(
+            pqxx::zview("insert into message (sender_id, chat_id, content) values ($1, $2, $3) returning id"),
+            pqxx::params(userId, chatId, content))[0];
         txn.commit();
-        return true;
+        return res["id"].as<std::string>(); 
     }
     catch (const pqxx::sql_error& e) 
     {
         std::cerr << "SQL error: " << e.what() << std::endl;
-        return false;
+        return "";
     }
 }
 
@@ -267,6 +267,34 @@ std::vector<json> DatabaseManage::getChatMessages(const std::string &chatId)
         messages.push_back(message);
     }
     return messages;
+}
+
+std::vector<std::string> DatabaseManage::getUsersInChat(const std::string &chatId)
+{
+    pqxx::nontransaction txn(*conn);
+    pqxx::result res = txn.exec(
+        pqxx::zview("select user_id from chat_participant where chat_id = $1"),
+        pqxx::params(chatId)
+    );
+
+    std::vector<std::string> userIds;
+    for (const auto& row : res) {
+        userIds.push_back(row["user_id"].as<std::string>());
+    }
+    return userIds;
+}
+
+std::string DatabaseManage::getUsername(const std::string &userId)
+{
+    pqxx::nontransaction txn(*conn);
+    pqxx::result res = txn.exec(
+        pqxx::zview("select username from app_user where id = $1"),
+        pqxx::params(userId)
+    );
+    if (!res.empty()) {
+        return res[0]["username"].as<std::string>();
+    }
+    return "";
 }
 
 bool DatabaseManage::leaveChat(const std::string &chatId, const std::string &userId)

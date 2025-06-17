@@ -52,7 +52,7 @@ public:
     bool updateUserStatus(const std::string& userId, const userStatus status);
 
     // это чтобы сообщение отправить в базу данных
-    bool saveMessage(const std::string& userId, 
+    std::string saveMessage(const std::string& userId, 
                      const std::string& chatId, 
                      const std::string& content);
 
@@ -80,6 +80,12 @@ public:
 
     // возвращает список сообщений чата, список содержит полную информацию о сообщении
     std::vector<json> getChatMessages(const std::string& chatId);
+
+    // возвращает список uuid пользователей в чате
+    std::vector<std::string> getUsersInChat(const std::string& chatId);
+
+    // возвращает имя пользователя по его uuid
+    std::string getUsername(const std::string& userId);
 
     // удаляет связь между пользователем и чатом
     bool leaveChat(const std::string& chatId, const std::string& userId);

@@ -16,7 +16,6 @@ public class GetUserChats implements ServerEventHandler{
 
     @Override
     public void handle(JSONObject response) {
-        System.out.println(response.toString());
         if ("success".equals(response.optString("status"))) {
             JSONArray chats = response.optJSONArray("chats");
             if (chats != null) {
@@ -27,7 +26,7 @@ public class GetUserChats implements ServerEventHandler{
                     String title = chatObj.optString("title", "");
                     if ("group".equals(type)) {
                         GroupChat groupChat = new GroupChat(uuid, title);
-                        App.chatList.put(groupChat.getTitle(), groupChat);
+                        App.chatList.put(uuid, groupChat);
                     } else {
                         JSONObject userObj = chatObj.optJSONObject("user");
                         User user = null;
@@ -35,7 +34,7 @@ public class GetUserChats implements ServerEventHandler{
                             user = new User(userObj.optString("user_id"), userObj.optString("username"));
                         }
                         PrivateChat privateChat = new PrivateChat(uuid, user);
-                        App.chatList.put(privateChat.getTitle(), privateChat);
+                        App.chatList.put(privateChat.getTitle(), privateChat);   
                     }
                 }
             }

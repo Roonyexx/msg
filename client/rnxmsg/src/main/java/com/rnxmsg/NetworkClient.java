@@ -19,6 +19,7 @@ public class NetworkClient {
 
     public void sendMessage(String message) throws IOException 
     {
+        System.out.println(message);
         byte[] messageBytes = message.getBytes("UTF-8");
         ByteBuffer buffer = ByteBuffer.allocate(4 + messageBytes.length);
         buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN);

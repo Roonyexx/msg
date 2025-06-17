@@ -102,14 +102,17 @@ public class MainController {
     private void handleSendButton() {
         String message = messageField.getText();
         if (message != null && !message.isEmpty()) {
-            // Создаём ChatMessage для текущего пользователя
             ChatMessage chatMessage = new ChatMessage(
-                System.currentTimeMillis(), // или другой id
+                System.currentTimeMillis(), 
                 message,
                 App.mainUser,
-                java.time.LocalTime.now().toString() // или другое время
+                java.time.LocalTime.now().toString() 
             );
-            messageListView.getItems().add(chatMessage);
+            App.currentChat.addMessage(chatMessage);
+            new Thread(() -> App.getSender().sendMessage(App.mainUser.getId(), 
+                App.currentChat.getId(), 
+                chatMessage)).start();
+            showMessagesForCurrentChat();
             messageField.clear();
         }
     }

@@ -26,7 +26,7 @@
                 <ListView fx:id="messageListView" styleClass="no-selection" prefHeight="350"/>
                 <HBox spacing="10">
                     <TextField fx:id="messageField" promptText="Введите сообщение..." HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="sendButton" text="Отправить"/>
+                    <Button fx:id="sendButton" text="Отправить" onAction="#handleSendButton"/>
                 </HBox>
             </children>
         </VBox>

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <memory>
+#include <unordered_map>
 #include "Session.hpp"
 
 using tcp = boost::asio::ip::tcp;

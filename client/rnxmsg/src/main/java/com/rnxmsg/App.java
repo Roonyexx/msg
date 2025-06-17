@@ -30,7 +30,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("mainwindow"), 640, 480);
+        scene = new Scene(loadFXML("login"), 640, 480);
         stage.setScene(scene);
         stage.show();
         scene.getStylesheets().add(App.class.getResource("/com/rnxmsg/styles/app.css").toExternalForm());
@@ -44,19 +44,19 @@ public class App extends Application {
                 receiver.start();
 
                 App.mainUser = new User();
-                App.mainUser.setUsername("alice");
-                sender.sendLogin("alice", "123456");
-                while (App.mainUser.getId() == null || App.mainUser.getId().isEmpty()) {
-                    Thread.sleep(50);
-                }
-                sender.getUserChats(App.mainUser.getId());
+                // App.mainUser.setUsername("alice");
+                // sender.sendLogin("alice", "123456");
+                // while (App.mainUser.getId() == null || App.mainUser.getId().isEmpty()) {
+                //     Thread.sleep(50);
+                // }
+                // sender.getUserChats(App.mainUser.getId());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    static void setRoot(String fxml) throws IOException {
+    public static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
 

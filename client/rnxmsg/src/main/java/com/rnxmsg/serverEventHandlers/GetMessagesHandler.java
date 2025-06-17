@@ -29,7 +29,8 @@ public class GetMessagesHandler implements ServerEventHandler {
                     JSONObject userObj = msgObj.optJSONObject("user");
                     User user = null;
                     if (userObj != null) {
-                        user = new User(userObj.optString("user_id", ""), userObj.optString("username", ""));
+                        user = new User(userObj.optString("user_id", ""), 
+                                        userObj.optString("username", ""));
                     }
                     ChatMessage chatMessage = new ChatMessage(id, content, user, timestamp);
                     messageList.add(chatMessage);
@@ -38,7 +39,6 @@ public class GetMessagesHandler implements ServerEventHandler {
             
             App.currentChat.setMessages(messageList);
             MainController controller = MainController.getInstance();
-            System.out.println(response.toString());
             Platform.runLater(controller::showMessagesForCurrentChat);
         } else {
             System.out.println("Ошибка загрузки сообщений: " + response.optString("message"));
